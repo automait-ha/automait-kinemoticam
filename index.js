@@ -32,4 +32,8 @@ function startListening() {
   this.client.on('motion', function () {
     this.emit('motion')
   }.bind(this))
+  
+  this.client.on('face', function () {
+    this.emit('face')
+  }.bind(this))
 }
