@@ -20,6 +20,7 @@ function Kinemoticam(automait, logger, config) {
   this.logger = logger
   this.config = config
   this.client = new Socket(config.connString)
+  this.face = { lastSeen: null, emitted: false }
 }
 
 Kinemoticam.prototype = Object.create(Emitter.prototype)
@@ -32,8 +33,21 @@ function startListening() {
   this.client.on('motion', function () {
     this.emit('motion')
   }.bind(this))
-  
+
   this.client.on('face', function () {
-    this.emit('face')
+    var now = (new Date()).getTime()
+      , faceConfirmed = this.face.lastSeen && now - this.face.lastSeen <= 3000
+      , timeoutReached = !this.face.emitted || this.face.lastSeen && now - this.face.lastSeen >= 5000
+
+    if (timeoutReached) {
+      this.face.emitted = false
+    }
+
+    if (faceConfirmed && timeoutReached) {
+      this.emit('face')
+      this.face.emitted = true
+    }
+
+    this.face.lastSeen = now
   }.bind(this))
 }
